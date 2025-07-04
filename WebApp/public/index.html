@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildfire Image Detection System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-orange-600 mb-2">Wildfire Image Detection System</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Upload an image or select from our sample library to detect fire using our CNN models</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Model Selection -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-md p-6 h-fit">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Select Model</h2>
+
+                <!-- Model Phase Selection -->
+                <div class="space-y-6">
+                    <!-- Phase 1 -->
+                    <div class="model-phase">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="togglePhase('phase1')">
+                            <h3 class="text-lg font-medium text-gray-700">Phase 1 Models</h3>
+                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="phase1-arrow"></i>
+                        </div>
+                        <div class="mt-3 space-y-3" id="phase1-models">
+                            <div class="model-card bg-blue-50 p-4 rounded-lg border border-blue-100" onclick="selectModel('phase1', 'model_1')">
+                                <h4 class="font-medium text-blue-800">Model 1</h4>
+                                <p class="text-sm text-blue-600">Recreation of the Hierarchical CNN</p>
+                            </div>
+                            <div class="model-card bg-blue-50 p-4 rounded-lg border border-blue-100" onclick="selectModel('phase1', 'model_2', this)">
+                                <h4 class="font-medium text-blue-800">Model 2</h4>
+                                <p class="text-sm text-blue-600">Recreation of the AHMHCNN-mCBAM</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div class="model-phase">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="togglePhase('phase2')">
+                            <h3 class="text-lg font-medium text-gray-700">Phase 2 Models</h3>
+                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="phase2-arrow"></i>
+                        </div>
+                        <div class="mt-3 space-y-3 hidden" id="phase2-models">
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_1_flame')">
+                                <h4 class="font-medium text-green-800">Model 1: FLAME</h4>
+                                <p class="text-sm text-green-600">Model 1 trained with the FLAME dataset</p>
+                            </div>
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_2_flame')">
+                                <h4 class="font-medium text-green-800">Model 2: FLAME</h4>
+                                <p class="text-sm text-green-600">Model 2 trained with the FLAME dataset</p>
+                            </div>
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_1_uavs')">
+                                <h4 class="font-medium text-green-800">Model 1: UAVS-FFDB</h4>
+                                <p class="text-sm text-green-600">Model 1 trained with the UAVS-FFDB dataset</p>
+                            </div>
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_2_uavs')">
+                                <h4 class="font-medium text-green-800">Model 2: UAVS-FFDB</h4>
+                                <p class="text-sm text-green-600">Model 2 trained with the UAVS-FFDB dataset</p>
+                            </div>
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_1_fireman')">
+                                <h4 class="font-medium text-green-800">Model 1: FireMan</h4>
+                                <p class="text-sm text-green-600">Model 1 trained with the FireMan dataset</p>
+                            </div>
+                            <div class="model-card bg-green-50 p-4 rounded-lg border border-green-100" onclick="selectModel('phase2', 'model_2_fireman')">
+                                <h4 class="font-medium text-green-800">Model 2: FireMan</h4>
+                                <p class="text-sm text-green-600">Model 2 trained with the FireMan dataset</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 3 -->
+                    <div class="model-phase">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="togglePhase('phase3')">
+                            <h3 class="text-lg font-medium text-gray-700">Phase 3 Models</h3>
+                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="phase3-arrow"></i>
+                        </div>
+                        <div class="mt-3 space-y-3 hidden" id="phase3-models">
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_1_flame_aug')">
+                                <h4 class="font-medium text-purple-800">Model 1: FLAME (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 1 trained with the FLAME dataset and data augmentation</p>
+                            </div>
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_2_flame_aug')">
+                                <h4 class="font-medium text-purple-800">Model 2: FLAME (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 2 trained with the FLAME dataset and data augmentation</p>
+                            </div>
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_1_uavs_aug')">
+                                <h4 class="font-medium text-purple-800">Model 1: UAVS-FFDB (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 1 trained with the UAVS-FFDB dataset and data augmentation</p>
+                            </div>
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_2_uavs_aug')">
+                                <h4 class="font-medium text-purple-800">Model 2: UAVS-FFDB (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 2 trained with the UAVS-FFDB dataset and data augmentation</p>
+                            </div>
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_1_fireman_aug')">
+                                <h4 class="font-medium text-purple-800">Model 1: FireMan (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 1 trained with the FireMan dataset and data augmentation</p>
+                            </div>
+                            <div class="model-card bg-purple-50 p-4 rounded-lg border border-purple-100" onclick="selectModel('phase3', 'model_2_fireman_aug')">
+                                <h4 class="font-medium text-purple-800">Model 2: FireMan (with Augmentation)</h4>
+                                <p class="text-sm text-purple-600">Model 2 trained with the FireMan dataset and data augmentation</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4 -->
+                    <div class="model-phase">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="togglePhase('phase4')">
+                            <h3 class="text-lg font-medium text-gray-700">Phase 4 Models</h3>
+                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-300" id="phase4-arrow"></i>
+                        </div>
+                        <div class="mt-3 space-y-3 hidden" id="phase4-models">
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_1_flame_uavs')">
+                                <h4 class="font-medium text-red-800">Model 1: FLAME and UAVS-FFDB</h4>
+                                <p class="text-sm text-red-600">Model 1 trained with the FLAME and UAVS-FFDB datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_2_flame_uavs')">
+                                <h4 class="font-medium text-red-800">Model 2: FLAME and UAVS-FFDB</h4>
+                                <p class="text-sm text-red-600">Model 2 trained with the FLAME and UAVS-FFDB datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_1_flame_fireman')">
+                                <h4 class="font-medium text-red-800">Model 1: FLAME and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 1 trained with the FLAME and FireMan datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_2_flame_fireman')">
+                                <h4 class="font-medium text-red-800">Model 2: FLAME and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 2 trained with the FLAME and FireMan datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_1_uavs_fireman')">
+                                <h4 class="font-medium text-red-800">Model 1: UAVS-FFDB and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 1 trained with the UAVS-FFDB and FireMan datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_2_uavs_fireman')">
+                                <h4 class="font-medium text-red-800">Model 2: UAVS-FFDB and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 2 trained with the UAVS-FFDB and FireMan datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_1_all')">
+                                <h4 class="font-medium text-red-800">Model 1: FLAME, UAVS-FFDB and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 1 trained with the FLAME, UAVS-FFDB and FireMan datasets</p>
+                            </div>
+                            <div class="model-card bg-red-50 p-4 rounded-lg border border-red-100" onclick="selectModel('phase4', 'model_2_all')">
+                                <h4 class="font-medium text-red-800">Model 2: FLAME, UAVS-FFDB and FireMan</h4>
+                                <p class="text-sm text-red-600">Model 2 trained with the FLAME, UAVS-FFDB and FireMan datasets</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Model Display -->
+                <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+                    <h4 class="font-medium text-gray-700 mb-2">Selected Model:</h4>
+                    <div id="selected-model" class="text-orange-600 font-medium">None selected</div>
+                </div>
+            </div>
+
+            <!-- Middle Column - Image Upload and Results -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Image Upload Section -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-800">Upload Image</h2>
+                        <button id="remove-image-btn" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>Remove Image
+                        </button>
+                    </div>
+
+                    <div class="dropzone" id="dropzone">
+                        <div id="dropzone-content" class="py-8">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 mb-2">Drag & drop your image here</p>
+                            <p class="text-sm text-gray-500 mb-4">or</p>
+                            <label for="file-upload" class="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                                Select Image
+                            </label>
+                            <input id="file-upload" type="file" accept="image/*" class="hidden">
+                        </div>
+                        <img id="image-preview" src="#" alt="Preview" class="hidden max-h-64 mx-auto rounded-lg shadow-sm">
+                        <p id="image-source" class="hidden text-sm text-gray-500 mt-2 text-center"></p>
+                    </div>
+
+                    <div class="mt-4 text-sm text-gray-500">
+                        <p>Supported formats: JPG, PNG, JPEG</p>
+                        <p>Max file size: 5MB</p>
+                    </div>
+
+
+                    <!-- Analyze Button -->
+                    <div class="mt-6 text-center">
+                        <button id="analyze-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50" disabled>
+                            Analyze Image
+                        </button>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="result-container" class="result-container mt-6">
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <h3 class="font-medium text-gray-800 mb-2">Analysis Results:</h3>
+                            <div id="results-content" class="space-y-2">
+                                <!-- Results will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Images Section -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Sample Images</h2>
+
+                    <!-- FLAME Dataset -->
+                    <div class="mb-4">
+                      <div class="flex justify-between items-center cursor-pointer" onclick="toggleSamples('flame')">
+                        <h3 class="text-lg font-semibold text-gray-800">FLAME Dataset</h3>
+                        <i cid="flame-arrow" class="fas fa-chevron-down text-gray-600"></i>
+                      </div>
+                      <div id="flameSamples" class="hidden mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="sample-image" onclick="useSampleImage('FLAME_1.jpg', 'FLAME')">
+                          <img src="ImageSamples/FLAME_1.jpg" alt="FLAME Sample 1">
+                          <p>FLAME #1</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FLAME_2.jpg', 'FLAME')">
+                          <img src="ImageSamples/FLAME_2.jpg" alt="FLAME Sample 2">
+                          <p>FLAME #2</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FLAME_3.jpg', 'FLAME')">
+                          <img src="ImageSamples/FLAME_3.jpg" alt="FLAME Sample 3">
+                          <p>FLAME #3</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FLAME_4.jpg', 'FLAME')">
+                          <img src="ImageSamples/FLAME_4.jpg" alt="FLAME Sample 4">
+                          <p>FLAME #4</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- UAVS-FFDB Dataset -->
+                    <div class="mb-4">
+                      <div class="flex justify-between items-center cursor-pointer" onclick="toggleSamples('uavs')">
+                        <h3 class="text-lg font-semibold text-gray-800">UAVS-FFDB Dataset</h3>
+                        <i id="uavs-arrow" class="fas fa-chevron-down text-gray-600"></i>
+                      </div>
+                      <div id="uavsSamples" class="hidden mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="sample-image" onclick="useSampleImage('UAVS_1.png', 'UAVS')">
+                          <img src="ImageSamples/UAVS_1.png" alt="UAVS Sample 1">
+                          <p>UAVS #1</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('UAVS_2.png', 'UAVS')">
+                          <img src="ImageSamples/UAVS_2.png" alt="UAVS Sample 2">
+                          <p>UAVS #2</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('UAVS_3.png', 'UAVS')">
+                          <img src="ImageSamples/UAVS_3.png" alt="UAVS Sample 3">
+                          <p>UAVS #3</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('UAVS_4.png', 'UAVS')">
+                          <img src="ImageSamples/UAVS_4.png" alt="UAVS Sample 4">
+                          <p>UAVS #4</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- FireMan Dataset -->
+                    <div class="mb-4">
+                      <div class="flex justify-between items-center cursor-pointer" onclick="toggleSamples('fireman')">
+                        <h3 class="text-lg font-semibold text-gray-800">FireMan Dataset</h3>
+                        <i id="fireman-arrow" class="fas fa-chevron-down text-gray-600"></i>
+                      </div>
+                      <div id="firemanSamples" class="hidden mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="sample-image" onclick="useSampleImage('FireMan_1.jpg', 'FireMan')">
+                          <img src="ImageSamples/FireMan_1.jpg" alt="FireMan Sample 1">
+                          <p>FireMan #1</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FireMan_2.jpg', 'FireMan')">
+                          <img src="ImageSamples/FireMan_2.jpg" alt="FireMan Sample 2">
+                          <p>FireMan #2</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FireMan_3.jpg', 'FireMan')">
+                          <img src="ImageSamples/FireMan_3.jpg" alt="FireMan Sample 3">
+                          <p>FireMan #3</p>
+                        </div>
+                        <div class="sample-image" onclick="useSampleImage('FireMan_4.jpg', 'FireMan')">
+                          <img src="ImageSamples/FireMan_4.jpg" alt="FireMan Sample 4">
+                          <p>FireMan #4</p>
+                        </div>
+                      </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="mt-12 bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Analysis History</h2>
+            <div id="history-container" class="space-y-4">
+                <!-- History items will be added here -->
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="scripts.js"></script>
+</body>
+</html>
+
