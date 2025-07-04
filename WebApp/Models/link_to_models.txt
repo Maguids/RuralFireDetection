@@ -1,0 +1,5 @@
+Due to , GitHub doens't allow me to put the models used in the app here, therefore they are on a folder on Google Drive, which you cana cess from the link bellow:
+
+https://drive.google.com/drive/folders/1WQkLq02WL7QvExkbIUShNIaFIYjNqTPV?usp=sharing
+
+In order to use the app, you need to use the folder Models as is from Google Drive.
